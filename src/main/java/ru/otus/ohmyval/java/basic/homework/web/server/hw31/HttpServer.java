@@ -3,6 +3,8 @@ package ru.otus.ohmyval.java.basic.homework.web.server.hw31;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HttpServer {
     private int port;
@@ -17,14 +19,24 @@ public class HttpServer {
             System.out.println("Сервер запущен на порту: " + port);
             this.dispatcher = new Dispatcher();
             System.out.println("Диспетчер проинициализирован");
-            try (Socket socket = serverSocket.accept()) {
-                byte[] buffer = new byte[8192];
-                int n = socket.getInputStream().read(buffer);
-                String rawRequest = new String(buffer, 0, n);
-                HttpRequest request = new HttpRequest(rawRequest);
-                request.info(true);
+//            ExecutorService serv = Executors.newCachedThreadPool();
+            while (true) {
+//                serv.execute(()-> {
+                new Thread(() -> {
+                    try (Socket socket = serverSocket.accept()) {
+                        byte[] buffer = new byte[8192];
+                        int n = socket.getInputStream().read(buffer);
+                        String rawRequest = new String(buffer, 0, n);
+                        HttpRequest request = new HttpRequest(rawRequest);
+                        request.info(true);
 
-                dispatcher.execute(request, socket.getOutputStream());
+                        dispatcher.execute(request, socket.getOutputStream());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+//            });
+//                serv.shutdown();
             }
         } catch (IOException e) {
             e.printStackTrace();
