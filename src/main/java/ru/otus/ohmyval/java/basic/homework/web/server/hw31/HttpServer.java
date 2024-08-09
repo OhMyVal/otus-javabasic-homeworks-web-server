@@ -19,27 +19,30 @@ public class HttpServer {
             System.out.println("Сервер запущен на порту: " + port);
             this.dispatcher = new Dispatcher();
             System.out.println("Диспетчер проинициализирован");
-//            ExecutorService serv = Executors.newCachedThreadPool();
+            ExecutorService serv = Executors.newFixedThreadPool(4);
             while (true) {
-//                serv.execute(()-> {
-                new Thread(() -> {
-                    try (Socket socket = serverSocket.accept()) {
-                        byte[] buffer = new byte[8192];
-                        int n = socket.getInputStream().read(buffer);
-                        String rawRequest = new String(buffer, 0, n);
-                        HttpRequest request = new HttpRequest(rawRequest);
-                        request.info(true);
-
-                        dispatcher.execute(request, socket.getOutputStream());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }).start();
-//            });
-//                serv.shutdown();
+                try (Socket socket = serverSocket.accept()) {
+                    serv.execute(() -> {
+                        try {
+                            threadPoolTask(socket);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    serv.shutdown();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void threadPoolTask(Socket socket) throws IOException {
+        byte[] buffer = new byte[8192];
+        int n = socket.getInputStream().read(buffer);
+        String rawRequest = new String(buffer, 0, n);
+        HttpRequest request = new HttpRequest(rawRequest);
+        request.info(true);
+        dispatcher.execute(request, socket.getOutputStream());
     }
 }
