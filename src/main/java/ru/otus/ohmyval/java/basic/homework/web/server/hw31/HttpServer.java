@@ -21,7 +21,8 @@ public class HttpServer {
             System.out.println("Диспетчер проинициализирован");
             ExecutorService serv = Executors.newFixedThreadPool(4);
             while (true) {
-                try (Socket socket = serverSocket.accept()) {
+                try {
+                    Socket socket = serverSocket.accept();
                     serv.execute(() -> {
                         try {
                             threadPoolTask(socket);
@@ -30,6 +31,8 @@ public class HttpServer {
                         }
                     });
                     serv.shutdown();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         } catch (IOException e) {
@@ -40,9 +43,12 @@ public class HttpServer {
     private void threadPoolTask(Socket socket) throws IOException {
         byte[] buffer = new byte[8192];
         int n = socket.getInputStream().read(buffer);
-        String rawRequest = new String(buffer, 0, n);
-        HttpRequest request = new HttpRequest(rawRequest);
-        request.info(true);
-        dispatcher.execute(request, socket.getOutputStream());
+        if (n > 0) {
+            String rawRequest = new String(buffer, 0, n);
+            HttpRequest request = new HttpRequest(rawRequest);
+            request.info(true);
+            dispatcher.execute(request, socket.getOutputStream());
+        }
+        socket.close();
     }
 }
