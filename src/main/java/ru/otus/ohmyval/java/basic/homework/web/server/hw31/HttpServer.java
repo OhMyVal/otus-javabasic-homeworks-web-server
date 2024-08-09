@@ -15,11 +15,11 @@ public class HttpServer {
     }
 
     public void start() {
+        ExecutorService serv = Executors.newFixedThreadPool(4);
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Сервер запущен на порту: " + port);
             this.dispatcher = new Dispatcher();
             System.out.println("Диспетчер проинициализирован");
-            ExecutorService serv = Executors.newFixedThreadPool(4);
             while (true) {
                 try {
                     Socket socket = serverSocket.accept();
@@ -30,7 +30,6 @@ public class HttpServer {
                             e.printStackTrace();
                         }
                     });
-                    serv.shutdown();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -38,6 +37,7 @@ public class HttpServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        serv.shutdown();
     }
 
     private void threadPoolTask(Socket socket) throws IOException {
