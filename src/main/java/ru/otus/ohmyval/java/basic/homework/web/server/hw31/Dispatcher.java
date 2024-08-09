@@ -1,9 +1,6 @@
 package ru.otus.ohmyval.java.basic.homework.web.server.hw31;
 
-import ru.otus.ohmyval.java.basic.homework.web.server.hw31.processors.CalculatorRequestProcessor;
-import ru.otus.ohmyval.java.basic.homework.web.server.hw31.processors.HelloWorldRequestProcessor;
-import ru.otus.ohmyval.java.basic.homework.web.server.hw31.processors.RequestProcessor;
-import ru.otus.ohmyval.java.basic.homework.web.server.hw31.processors.UnknownOperationRequestProcessor;
+import ru.otus.ohmyval.java.basic.homework.web.server.hw31.application.processors.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,16 +13,19 @@ public class Dispatcher {
 
     public Dispatcher() {
         this.router = new HashMap<>();
-        this.router.put("/calc", new CalculatorRequestProcessor());
-        this.router.put("/hello", new HelloWorldRequestProcessor());
+        this.router.put("GET /calc", new CalculatorRequestProcessor());
+        this.router.put("GET /hello", new HelloWorldRequestProcessor());
+        this.router.put("GET /items", new GetAllProductsProcessor());
+        this.router.put("POST /items", new CreateNewProductProcessor());
+        this.router.put("PUT /items", new ChangeProductProcessor());
         this.unknownOperationRequestProcessor = new UnknownOperationRequestProcessor();
     }
 
     public void execute(HttpRequest httpRequest, OutputStream outputStream) throws IOException {
-        if (!router.containsKey(httpRequest.getUri())) {
+        if (!router.containsKey(httpRequest.getRouteKey())) {
             unknownOperationRequestProcessor.execute(httpRequest, outputStream);
             return;
         }
-        router.get(httpRequest.getUri()).execute(httpRequest, outputStream);
+        router.get(httpRequest.getRouteKey()).execute(httpRequest, outputStream);
     }
 }

@@ -1,5 +1,7 @@
 package ru.otus.ohmyval.java.basic.homework.web.server.hw31;
 
+import ru.otus.ohmyval.java.basic.homework.web.server.hw31.application.Storage;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -17,14 +19,18 @@ public class HttpServer {
             System.out.println("Сервер запущен на порту: " + port);
             this.dispatcher = new Dispatcher();
             System.out.println("Диспетчер проинициализирован");
-            try (Socket socket = serverSocket.accept()) {
-                byte[] buffer = new byte[8192];
-                int n = socket.getInputStream().read(buffer);
-                String rawRequest = new String(buffer, 0, n);
-                HttpRequest request = new HttpRequest(rawRequest);
-                request.info(true);
-
-                dispatcher.execute(request, socket.getOutputStream());
+            Storage.init();
+            while (true) {
+                try (Socket socket = serverSocket.accept()) {
+                    byte[] buffer = new byte[8192];
+                    int n = socket.getInputStream().read(buffer);
+                    if (n > 0) {
+                        String rawRequest = new String(buffer, 0, n);
+                        HttpRequest request = new HttpRequest(rawRequest);
+                        request.info(true);
+                        dispatcher.execute(request, socket.getOutputStream());
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
