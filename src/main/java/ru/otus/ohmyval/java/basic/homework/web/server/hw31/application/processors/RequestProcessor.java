@@ -1,4 +1,4 @@
-package ru.otus.ohmyval.java.basic.homework.web.server.hw31.processors;
+package ru.otus.ohmyval.java.basic.homework.web.server.hw31.application.processors;
 
 import ru.otus.ohmyval.java.basic.homework.web.server.hw31.HttpRequest;
 
